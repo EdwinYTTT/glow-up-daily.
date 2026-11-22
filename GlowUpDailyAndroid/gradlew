@@ -1,0 +1,26 @@
+#!/usr/bin/env sh
+# Small wrapper bootstrapper. Downloads Gradle 8.9 without requiring gradle-wrapper.jar.
+set -eu
+VERSION="8.9"
+GRADLE_USER_HOME="${GRADLE_USER_HOME:-$HOME/.gradle}"
+BASE="$GRADLE_USER_HOME/manual-wrapper"
+DIST="$BASE/gradle-$VERSION"
+if [ ! -x "$DIST/bin/gradle" ]; then
+  mkdir -p "$BASE"
+  ZIP="$BASE/gradle-$VERSION-bin.zip"
+  if command -v curl >/dev/null 2>&1; then
+    curl -fL "https://services.gradle.org/distributions/gradle-$VERSION-bin.zip" -o "$ZIP"
+  elif command -v wget >/dev/null 2>&1; then
+    wget "https://services.gradle.org/distributions/gradle-$VERSION-bin.zip" -O "$ZIP"
+  else
+    echo "Necesitas curl o wget para descargar Gradle $VERSION." >&2
+    exit 1
+  fi
+  if command -v unzip >/dev/null 2>&1; then
+    unzip -q -o "$ZIP" -d "$BASE"
+  else
+    echo "Necesitas unzip para instalar Gradle $VERSION." >&2
+    exit 1
+  fi
+fi
+exec "$DIST/bin/gradle" "$@"
